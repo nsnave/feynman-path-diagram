@@ -5,10 +5,12 @@ function getCircuit(i) {
       return {
         cols: [["H"], [1, "H"], ["•", "X"], ["H"], [1, "H"]],
       };
+
     case 2:
       return {
         cols: [["H"], ["•", "X"], ["H"], [1, "H"]],
       };
+
     case 3:
       return {
         cols: [
@@ -21,6 +23,21 @@ function getCircuit(i) {
           [1, "H"],
         ],
       };
+
+    case 4:
+      return {
+        cols: [
+          ["H"],
+          ["•", "X"],
+          [1, "Z"],
+          [1, "•", "X"],
+          ["H"],
+          [1, "H"],
+          ["X", "•"],
+          [1, "H"],
+        ],
+      };
+
     default: {
     }
   }

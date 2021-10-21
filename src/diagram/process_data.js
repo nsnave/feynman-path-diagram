@@ -129,7 +129,7 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
 }
 
 async function processData() {
-  const test = 3;
+  const test = 4;
   const circuit = getCircuit(test);
   const data = await makeRequest(
     "http://localhost:8000/t" + test + "_diagram.json"
