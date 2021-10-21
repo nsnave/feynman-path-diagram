@@ -129,8 +129,11 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
 }
 
 async function processData() {
-  const circuit = getCircuit();
-  const data = await makeRequest("http://localhost:8000/t1_diagram.json");
+  const test = 3;
+  const circuit = getCircuit(test);
+  const data = await makeRequest(
+    "http://localhost:8000/t" + test + "_diagram.json"
+  );
 
   let qubits = data.qubits;
   let layers = data.amplitudes.length;
