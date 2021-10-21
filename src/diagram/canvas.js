@@ -30,7 +30,7 @@ function newNode(coord, amp) {
     x: coord.x,
     y: coord.y,
     radius: 4,
-    stroke: (amp < 0) ? "red" : "black",
+    stroke: (amp[0] < 0) ? "red" : "black",
     fill: "black",
     strokeWidth: 2,
   });
