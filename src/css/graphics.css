@@ -1,0 +1,14 @@
+#canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+#download {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  padding-right: 8px;
+  cursor: pointer;
+  font-size: 32px;
+}
