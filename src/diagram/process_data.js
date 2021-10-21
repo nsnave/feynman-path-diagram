@@ -138,7 +138,7 @@ async function processData() {
   let qubits = data.qubits;
   let layers = data.amplitudes.length;
 
-  // Calculates which states a present in each layer
+  // Calculates which states are present in each layer
   // Also changes the keys in data.amplitudes from strings to ints
   let states_per_layer = [];
   let amplitudes = [];
@@ -155,6 +155,7 @@ async function processData() {
   });
   data.amplitudes = amplitudes;
 
+  // Creates a function to calculate where nodes should go on the canvas
   let layer_spacing = window.innerWidth / (layers + 1);
   let qubit_spacing = window.innerHeight / ((1 << qubits) + 1);
 
@@ -166,8 +167,6 @@ async function processData() {
 
   handleLines(circuit.cols, data, states_per_layer, nodePosition);
   handleNodes(data.amplitudes, states_per_layer, nodePosition);
-
-  stage.batchDraw();
 }
 
 processData();
