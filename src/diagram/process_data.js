@@ -15,7 +15,9 @@ function handleNodes(amplitudes, states_per_layer, nodePosition) {
   for (let i = 0; i < layers; i++) {
     let amps = amplitudes[i];
     states_per_layer[i].forEach((state) => {
-      nodes.push(newNode(nodePosition(i, state), amps[state]));
+      if (i == 0 || i == layers - 1 || amps[state][0] < 0) {
+        nodes.push(newNode(nodePosition(i, state), amps[state]));
+      }
     });
   }
 
@@ -128,8 +130,10 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
   addElements(lines);
 }
 
+const rev = false;
+const test = 1;
+
 async function processData() {
-  const test = 4;
   const circuit = getCircuit(test);
   const data = await makeRequest(
     "http://localhost:8000/t" + test + "_diagram.json"
@@ -159,9 +163,21 @@ async function processData() {
   let layer_spacing = window.innerWidth / (layers + 1);
   let qubit_spacing = window.innerHeight / ((1 << qubits) + 1);
 
+  let reverse = (q) => {
+    let k = 0;
+    for (let i = 0; i < qubits; i++) {
+      k <<= 1;
+      if (q & 1) k |= 1;
+      q >>= 1;
+    }
+    console.log("Why: " + q + " " + k);
+    return k;
+  };
+
   let nodePosition = (layer, qubit) => {
+    let q = rev ? reverse(qubit) : qubit;
     let x = layer_spacing * (layer + 1);
-    let y = qubit_spacing * (qubit + 1);
+    let y = qubit_spacing * (q + 1);
     return { x: x, y: y };
   };
 
