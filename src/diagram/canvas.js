@@ -14,6 +14,12 @@ const center = {
   y: window.innerHeight / 2,
 };
 
+/********************************************************************************
+ *                                                                              *
+ *                                Canvas Setup                                  *
+ *                                                                              *
+ ********************************************************************************/
+
 // Makes canvas fit to window
 function updateStageSize() {
   stage.width(window.innerWidth);
@@ -24,14 +30,119 @@ function updateStageSize() {
 }
 window.addEventListener("resize", updateStageSize);
 
+//handles zooming via scroll on desktop
+//  initial src: https://konvajs.org/docs/sandbox/Zooming_Relative_To_Pointer.html
+const scaleBy = 0.94;
+stage.on("wheel", (e) => {
+  e.evt.preventDefault();
+
+  let oldScale = stage.scaleX();
+  let pointer = stage.getPointerPosition();
+
+  let mousePointTo = {
+    x: (pointer.x - stage.x()) / oldScale,
+    y: (pointer.y - stage.y()) / oldScale,
+  };
+
+  let newScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+  stage.scale({ x: newScale, y: newScale });
+
+  let newPos = {
+    x: pointer.x - mousePointTo.x * newScale,
+    y: pointer.y - mousePointTo.y * newScale,
+  };
+  stage.position(newPos);
+  stage.batchDraw();
+});
+
+//handles zooming via pinch on touchscreens
+//  initial src: https://konvajs.org/docs/sandbox/Multi-touch_Scale_Stage.html
+
+let lastCenter = null;
+let lastDist = 0;
+
+stage.on("touchmove", function (e) {
+  e.evt.preventDefault();
+
+  let touch1 = e.evt.touches[0];
+  let touch2 = e.evt.touches[1];
+
+  if (touch1 && touch2) {
+    // if the stage was under Konva's drag&drop
+    // we need to stop it, and implement our own pan logic with two pointers
+    if (stage.isDragging()) {
+      stage.stopDrag();
+    }
+
+    let p1 = {
+      x: touch1.clientX,
+      y: touch1.clientY,
+    };
+    let p2 = {
+      x: touch2.clientX,
+      y: touch2.clientY,
+    };
+
+    if (!lastCenter) {
+      lastCenter = midpointPoints(p1, p2);
+      return;
+    }
+    let newCenter = midpointPoints(p1, p2);
+
+    let dist = distPoints(p1, p2);
+
+    if (!lastDist) {
+      lastDist = dist;
+    }
+
+    // local coordinates of center point
+    let pointTo = {
+      x: (newCenter.x - stage.x()) / stage.scaleX(),
+      y: (newCenter.y - stage.y()) / stage.scaleX(),
+    };
+
+    var scale = stage.scaleX() * (dist / lastDist);
+
+    stage.scaleX(scale);
+    stage.scaleY(scale);
+
+    // calculate new position of the stage
+    let dx = newCenter.x - lastCenter.x;
+    let dy = newCenter.y - lastCenter.y;
+
+    let newPos = {
+      x: newCenter.x - pointTo.x * scale + dx,
+      y: newCenter.y - pointTo.y * scale + dy,
+    };
+
+    stage.position(newPos);
+    stage.batchDraw();
+
+    lastDist = dist;
+    lastCenter = newCenter;
+  }
+});
+
+stage.on("touchend", function () {
+  lastDist = 0;
+  lastCenter = null;
+});
+
+/********************************************************************************
+ *                                                                              *
+ *                            Shape Generation Functions                        *
+ *                                                                              *
+ ********************************************************************************/
+
 // Creates a node at coordinate (x, y)
 function newNode(coord, amp) {
   let circle = new Konva.Circle({
     x: coord.x,
     y: coord.y,
     radius: 4,
-    stroke: (amp[0] < 0) ? "red" : "black",
-    fill: (amp[0] < 0) ? "red" : "black",
+    stroke: amp[0] < 0 ? "red" : "black",
+    fill: amp[0] < 0 ? "red" : "black",
     strokeWidth: 2,
   });
 
@@ -74,7 +185,7 @@ function newLabel(coord, text, font_size = 16) {
     y: coord.y,
     text: text,
     fontSize: font_size,
-  })
+  });
   console.log(label);
   return label;
 }
@@ -91,7 +202,6 @@ function addElements(elements) {
   stage.add(layer);
 }
 
-
 // Functions to download canvas as image:
 // main src:           https://konvajs.org/docs/data_and_serialization/High-Quality-Export.html
 // downloadURI() from: https://stackoverflow.com/a/15832662/512042
@@ -102,7 +212,6 @@ function downloadURI(uri, name) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  delete link;
 }
 
 function downloadCanvas() {
