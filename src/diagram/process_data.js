@@ -130,8 +130,38 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
   addElements(lines);
 }
 
-const rev = false;
-const test = 1;
+function handleLabels(qubits, side_offset, labelY) {
+  let to_string = (q) => {
+    let k = "";
+    for (let i = 0; i < qubits; i++) {
+      k = (q & 1 ? "1" : "0") + k;
+      q >>= 1;
+    }
+    return k;
+  };
+
+  let labels = [];
+  let states = 1 << qubits;
+  for (let i = 0; i < states; i++) {
+    let text = "|" + to_string(i) + String.fromCharCode(9002);
+
+    let x1 = 12;
+    let x2 = window.innerWidth - side_offset + 12;
+
+    let y = labelY(i);
+
+    labels.push(newLabel({ x: x1, y: y }, text));
+    labels.push(newLabel({ x: x2, y: y }, text));
+  }
+
+  console.log(labels);
+
+  addElements(labels);
+}
+
+const test = 4;
+const rev = true;
+const display_states = true;
 
 async function processData() {
   const circuit = getCircuit(test);
@@ -159,8 +189,23 @@ async function processData() {
   });
   data.amplitudes = amplitudes;
 
+  // Calculates offset of diagram sides based on the future state label size
+  let temp_text = "|" + "0".repeat(qubits) + String.fromCharCode(9002);
+  let temp_label = new Konva.Text({
+    text: temp_text,
+    fontSize: 16,
+  });
+  let side_offset = temp_label.width() + 24;
+  console.log("Offset: " + side_offset);
+
+  let labelY = (qubit) => {
+    let q = rev ? reverse(qubit) : qubit;
+    let y = qubit_spacing * (q + 1) - temp_label.height() / 2;
+    return y;
+  };
+
   // Creates a function to calculate where nodes should go on the canvas
-  let layer_spacing = window.innerWidth / (layers + 1);
+  let layer_spacing = (window.innerWidth - 2 * side_offset) / (layers - 1 + 0);
   let qubit_spacing = window.innerHeight / ((1 << qubits) + 1);
 
   let reverse = (q) => {
@@ -170,17 +215,17 @@ async function processData() {
       if (q & 1) k |= 1;
       q >>= 1;
     }
-    console.log("Why: " + q + " " + k);
     return k;
   };
 
   let nodePosition = (layer, qubit) => {
     let q = rev ? reverse(qubit) : qubit;
-    let x = layer_spacing * (layer + 1);
+    let x = layer_spacing * (layer + 0) + side_offset;
     let y = qubit_spacing * (q + 1);
     return { x: x, y: y };
   };
 
+  handleLabels(qubits, side_offset, labelY);
   handleLines(circuit.cols, data, states_per_layer, nodePosition);
   handleNodes(data.amplitudes, states_per_layer, nodePosition);
 }

@@ -67,6 +67,18 @@ function newLine(coord1, coord2, weight) {
   return bezier_line;
 }
 
+function newLabel(coord, text, font_size = 16) {
+  console.log("here");
+  let label = new Konva.Text({
+    x: coord.x,
+    y: coord.y,
+    text: text,
+    fontSize: font_size,
+  })
+  console.log(label);
+  return label;
+}
+
 // Adds a series of elements to the stage
 function addElements(elements) {
   let layer = new Konva.Layer();
