@@ -2,8 +2,14 @@
  * Processes data returned from a GET request to the server.
  */
 
-async function makeRequest(url) {
-  let response = await fetch(url);
+async function makeRequest(url, circuit) {
+  let response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(circuit),
+  });
   let data = await response.json();
   return data;
 }
@@ -160,14 +166,15 @@ function handleLabels(qubits, side_offset, labelY) {
 }
 
 const test = 4;
-const rev = true;
+const rev = false;
 const display_states = true;
 const display_gates = true;
 
 async function processData() {
   const circuit = getCircuit(test);
   const data = await makeRequest(
-    "http://localhost:8000/t" + test + "_diagram.json"
+    "http://localhost:8000/t" + test + "_diagram.json",
+    circuit
   );
 
   let qubits = data.qubits;
@@ -225,6 +232,7 @@ async function processData() {
     return { x: x, y: y };
   };
 
+  // Adds shapes to canvas as necessary
   if (display_states) {
     let labelY = (qubit) => {
       let q = rev ? reverse(qubit) : qubit;
