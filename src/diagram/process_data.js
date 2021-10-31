@@ -20,6 +20,14 @@ async function makeRequest(url, circuit) {
   return data;
 }
 
+function getQubitNum(circuit) {
+  let qubits = 0;
+  circuit.forEach((layer) => {
+    if (layer.length > qubits) qubits = layer.length;
+  });
+  return qubits;
+}
+
 function handleNodes(amplitudes, states_per_layer, nodePosition) {
   // Creates a list of coordinates where each node should go
   let layers = amplitudes.length;
@@ -61,7 +69,7 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
   let lines = [];
   // For each layer...
   for (let i = 0; i < layers - 1; i++) {
-    console.log("Layer: " + i);
+    //console.log("Layer: " + i);
     let states = states_per_layer[i];
     let gates = circuit[i];
     let amps = data.amplitudes[i];
@@ -83,11 +91,11 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
     let padding = qubits - gates.length;
     controlled <<= padding;
     anticontrolled <<= padding;
-    console.log("Controlled: " + controlled);
+    //console.log("Controlled: " + controlled);
 
     // For each gate in the layer...
     gates.forEach((gate_str, index) => {
-      console.log("Gate: " + gate_str + "  " + index);
+      //console.log("Gate: " + gate_str + "  " + index);
       let gate = getGate(gate_str);
       if (isIden(gate)) return;
 
@@ -240,12 +248,13 @@ function handleGates(qubits, gates_arr, gateX) {
 
 async function processData() {
   const circuit = getCircuit(test);
-  const data = await makeRequest(
-    "http://localhost:8000/t" + test + "_diagram.json",
-    circuit
-  );
+  circuit.qubits = getQubitNum(circuit.cols);
 
-  console.log(circuit);
+  // Makes server request
+  const data = await makeRequest("http://localhost:8000", circuit);
+
+  //console.log(circuit);
+  //console.log(data);
 
   let qubits = data.qubits;
   let layers = data.amplitudes.length;
