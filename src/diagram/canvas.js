@@ -137,13 +137,15 @@ stage.on("touchend", function () {
 
 // Creates a node at coordinate (x, y)
 function newNode(coord, amp) {
+  let sqrComplex = ([x, y]) => [x * x - y * y, 2 * x * y];
+
   let circle = new Konva.Circle({
     x: coord.x,
     y: coord.y,
-    radius: 4,
+    radius: Math.abs(sqrComplex(amp)[0] * 8),
     stroke: amp[0] < 0 ? "red" : "black",
     fill: amp[0] < 0 ? "red" : "black",
-    strokeWidth: 2,
+    strokeWidth: Math.abs(sqrComplex(amp)[0] * 2),
   });
 
   return circle;
@@ -156,7 +158,7 @@ function newLine(coord1, coord2, weight) {
   let anchor1 = { x: coord1.x + mid_x, y: coord1.y };
   let anchor2 = { x: coord2.x - mid_x, y: coord2.y };
 
-  console.log(weight);
+  //console.log(weight);
   var bezier_line = new Konva.Shape({
     stroke: weight[0] < 0 ? "orange" : "blue",
     strokeWidth: 8 * Math.abs(weight[0]),
@@ -179,14 +181,12 @@ function newLine(coord1, coord2, weight) {
 }
 
 function newLabel(coord, text, font_size = 16) {
-  console.log("here");
   let label = new Konva.Text({
     x: coord.x,
     y: coord.y,
     text: text,
     fontSize: font_size,
   });
-  console.log(label);
   return label;
 }
 
@@ -215,6 +215,6 @@ function downloadURI(uri, name) {
 }
 
 function downloadCanvas() {
-  let dataURL = stage.toDataURL({ pixelRatio: 3 });
+  let dataURL = stage.toDataURL({ pixelRatio: 35 });
   downloadURI(dataURL, "diagram.png");
 }

@@ -2,6 +2,12 @@
  * Processes data returned from a GET request to the server.
  */
 
+const test = 7;
+const rev = false;
+const display_states = false;
+const display_gates = true;
+const all_nodes = false;
+
 async function makeRequest(url, circuit) {
   let response = await fetch(url, {
     method: "POST",
@@ -21,7 +27,7 @@ function handleNodes(amplitudes, states_per_layer, nodePosition) {
   for (let i = 0; i < layers; i++) {
     let amps = amplitudes[i];
     states_per_layer[i].forEach((state) => {
-      if (i == 0 || i == layers - 1 || amps[state][0] < 0) {
+      if (all_nodes || i == 0 || i == layers - 1 || amps[state][0] < 0) {
         nodes.push(newNode(nodePosition(i, state), amps[state]));
       }
     });
@@ -90,14 +96,14 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
         // The current state of the individual qubit being acted on
         let input = getBit(state, index);
 
-        console.log(state + "  " + input);
+        //console.log(state + "  " + input);
 
         // Handles creating the line between input and output
         let handleOutput = (output) => {
           let weight = gate[output][input];
           if (!isZero(weight)) {
             let next = output == input ? state : flipBit(state, index);
-            console.log(next);
+            //console.log(next);
             lines.push(
               newLine(
                 nodePosition(i, state),
@@ -116,7 +122,6 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
           (controlled && (controlled & state) != controlled) ||
           (anticontrolled && (anticontrolled & ~state) != anticontrolled)
         ) {
-          console.log("here");
           lines.push(
             newLine(
               nodePosition(i, state),
@@ -160,15 +165,78 @@ function handleLabels(qubits, side_offset, labelY) {
     labels.push(newLabel({ x: x2, y: y }, text));
   }
 
-  console.log(labels);
-
   addElements(labels);
 }
 
-const test = 4;
-const rev = false;
-const display_states = true;
-const display_gates = true;
+const subscripts = [
+  String.fromCharCode(8320),
+  String.fromCharCode(8321),
+  String.fromCharCode(8322),
+  String.fromCharCode(8323),
+  String.fromCharCode(8324),
+  String.fromCharCode(8325),
+  String.fromCharCode(8326),
+  String.fromCharCode(8327),
+  String.fromCharCode(8328),
+  String.fromCharCode(8329),
+];
+
+function handleGates(qubits, gates_arr, gateX) {
+  let gate_strs = [];
+  gates_arr.forEach((gates, index) => {
+    let controlled = [];
+    let anticontrolled = [];
+    let unitaries = [];
+    gates.forEach((gate_str, qubit) => {
+      if (gate_str === "•") {
+        controlled.push(qubit);
+      } else if (gate_str === "◦") {
+        anticontrolled.push(qubit);
+      } else if (gate_str != 1) {
+        unitaries.push({ qubit: qubit, gate: gate_str });
+      }
+    });
+
+    let gate_prefix =
+      "C".repeat(controlled.length) +
+      String.fromCharCode(266).repeat(anticontrolled.length);
+
+    let gate_subscript_prefix = "";
+    let comma = qubits > 9;
+    controlled.forEach((qubit) => {
+      gate_subscript_prefix += subscripts[qubit] + (comma ? "," : "");
+    });
+    anticontrolled.forEach((qubit) => {
+      gate_subscript_prefix += subscripts[qubit] + (comma ? "," : "");
+    });
+
+    let texts = [];
+    unitaries.forEach((unitary) => {
+      let text =
+        gate_prefix +
+        unitary.gate +
+        gate_subscript_prefix +
+        subscripts[unitary.qubit];
+      texts.push(text);
+    });
+
+    gate_strs.push(texts.join());
+  });
+
+  let y = 24;
+  let labels = [];
+  for (let i = 0; i < gates_arr.length; i++) {
+    let text = gate_strs[i];
+
+    let label = newLabel({ x: 0, y: y }, text, 18);
+    label.setX(gateX(i, label.width()));
+    label.fontStyle("bold");
+
+    labels.push(label);
+  }
+
+  addElements(labels);
+}
 
 async function processData() {
   const circuit = getCircuit(test);
@@ -176,6 +244,8 @@ async function processData() {
     "http://localhost:8000/t" + test + "_diagram.json",
     circuit
   );
+
+  console.log(circuit);
 
   let qubits = data.qubits;
   let layers = data.amplitudes.length;
@@ -208,27 +278,35 @@ async function processData() {
     return k;
   };
 
-  // Calculates offset of diagram sides based on the future state label size
+  // Calculates offset of diagram sides based on the future label size
   let side_offset = 24;
-  let label_height = 0;
-  if (display_states) {
+  let top_offset = 48;
+  let label_y_offset = 0;
+  if (display_states || display_gates) {
     let temp_text = "|" + "0".repeat(qubits) + String.fromCharCode(9002);
     let temp_label = new Konva.Text({
       text: temp_text,
-      fontSize: 16,
     });
-    side_offset += temp_label.width();
-    label_height = temp_label.height();
+    if (display_states) {
+      temp_label.fontSize(16);
+      side_offset += temp_label.width();
+      label_y_offset = temp_label.height() / 2;
+    }
+    if (display_gates) {
+      temp_label.fontSize(18);
+      top_offset += temp_label.height();
+    }
   }
 
   // Creates a function to calculate where nodes should go on the canvas
   let layer_spacing = (window.innerWidth - 2 * side_offset) / (layers - 1 + 0);
-  let qubit_spacing = window.innerHeight / ((1 << qubits) + 1);
+  let qubit_spacing =
+    (window.innerHeight - top_offset - 48) / ((1 << qubits) + 1 - 2);
 
   let nodePosition = (layer, qubit) => {
     let q = rev ? reverse(qubit) : qubit;
     let x = layer_spacing * (layer + 0) + side_offset;
-    let y = qubit_spacing * (q + 1);
+    let y = qubit_spacing * (q + 1 - 1) + top_offset;
     return { x: x, y: y };
   };
 
@@ -236,11 +314,24 @@ async function processData() {
   if (display_states) {
     let labelY = (qubit) => {
       let q = rev ? reverse(qubit) : qubit;
-      let y = qubit_spacing * (q + 1) - label_height / 2;
+      let y = qubit_spacing * (q + 1 - 1) - label_y_offset + top_offset;
       return y;
     };
 
     handleLabels(qubits, side_offset, labelY);
+  }
+
+  if (display_gates) {
+    let gateX = (layer, label_width) => {
+      let x =
+        layer_spacing * (layer + 0) +
+        side_offset +
+        layer_spacing / 2 -
+        label_width / 2;
+      return x;
+    };
+
+    handleGates(qubits, circuit.cols, gateX);
   }
 
   handleLines(circuit.cols, data, states_per_layer, nodePosition);
