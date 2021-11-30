@@ -2,11 +2,25 @@
  * Processes data returned from a GET request to the server.
  */
 
-const test = 7;
+const server_url = "http://localhost:8000";
+const test = 3;
+
 const rev = false;
 const display_states = false;
 const display_gates = true;
 const all_nodes = false;
+const get_amplitudes = false;
+
+let isZero = (entry) => entry[0] == 0 && entry[1] == 0;
+let isOne = (entry) => entry[0] == 1 && entry[1] == 0;
+let isIden = (gate) => {
+  return (
+    isOne(gate[0][0]) &&
+    isZero(gate[0][1]) &&
+    isZero(gate[1][0]) &&
+    isOne(gate[1][1])
+  );
+};
 
 async function makeRequest(url, circuit) {
   let response = await fetch(url, {
@@ -36,7 +50,13 @@ function handleNodes(amplitudes, states_per_layer, nodePosition) {
     let amps = amplitudes[i];
     states_per_layer[i].forEach((state) => {
       if (all_nodes || i == 0 || i == layers - 1 || amps[state][0] < 0) {
-        nodes.push(newNode(nodePosition(i, state), amps[state]));
+        console.log(amps[state]);
+        if (!isZero(amps[state])) {
+          let node_weight = get_amplitudes
+            ? amps[state]
+            : [amps[state][0] < 0 ? -0.75 : 0.75, 0.0];
+          nodes.push(newNode(nodePosition(i, state), node_weight));
+        }
       }
     });
   }
@@ -54,17 +74,6 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
 
   let scalMulComplex = (a, [x, y]) => [a * x, a * y];
   let sqrComplex = ([x, y]) => [x * x - y * y, 2 * x * y];
-
-  let isZero = (entry) => entry[0] == 0 && entry[1] == 0;
-  let isOne = (entry) => entry[0] == 1 && entry[1] == 0;
-  let isIden = (gate) => {
-    return (
-      isOne(gate[0][0]) &&
-      isZero(gate[0][1]) &&
-      isZero(gate[1][0]) &&
-      isOne(gate[1][1])
-    );
-  };
 
   let lines = [];
   // For each layer...
@@ -109,17 +118,19 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
         // Handles creating the line between input and output
         let handleOutput = (output) => {
           let weight = gate[output][input];
-          if (!isZero(weight)) {
+          if (!isZero(weight) && !isZero(amps[state])) {
             let next = output == input ? state : flipBit(state, index);
             //console.log(next);
             lines.push(
               newLine(
                 nodePosition(i, state),
                 nodePosition(i + 1, next),
-                scalMulComplex(
-                  (weight[0] < 0 ? -1 : 1) * (weight[0] * weight[0]),
-                  sqrComplex(amps[state])
-                )
+                get_amplitudes
+                  ? scalMulComplex(
+                      (weight[0] < 0 ? -1 : 1) * (weight[0] * weight[0]),
+                      sqrComplex(amps[state])
+                    )
+                  : [weight[0] < 0 ? -0.5 : 0.5, 0.0]
               )
             );
           }
@@ -251,7 +262,7 @@ async function processData() {
   circuit.qubits = getQubitNum(circuit.cols);
 
   // Makes server request
-  const data = await makeRequest("http://localhost:8000", circuit);
+  const data = await makeRequest(server_url, circuit);
 
   //console.log(circuit);
   //console.log(data);
