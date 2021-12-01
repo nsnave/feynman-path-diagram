@@ -31,10 +31,18 @@
 
       <br />
 
-      <button id="circuit-btn">Change Circuit</button><br /><br />
+      <button id="circuit-btn" onclick="openCircuitPane()">
+        Change Circuit</button
+      ><br /><br />
       <button id="gen-btn" onclick="processData()">Generate</button>
 
       <a id="download" onclick="downloadCanvas()">&#10515;</a>
+    </div>
+
+    <div id="circuit">
+      <a href="javascript:void(0)" id="close-btn" onclick="closeCircuitPane()"
+        >&times;</a
+      >
     </div>
 
     <!-- Scripts -->

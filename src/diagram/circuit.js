@@ -1,3 +1,11 @@
+function openCircuitPane() {
+  document.getElementById("circuit").style.width = "100%";
+}
+
+function closeCircuitPane() {
+  document.getElementById("circuit").style.width = "0%";
+}
+
 function getTestCircuit(i) {
   // TODO
   switch (i) {
