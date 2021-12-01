@@ -8,7 +8,6 @@ function closeCircuitPane() {
 
 function getCircuitFromFile() {
   const circuit_file = document.getElementById("circuit-file-btn").files[0];
-  console.log(circuit_file);
   if (circuit_file) {
     const reader = new FileReader();
 

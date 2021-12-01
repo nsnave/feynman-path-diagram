@@ -148,13 +148,15 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
           (controlled && (controlled & state) != controlled) ||
           (anticontrolled && (anticontrolled & ~state) != anticontrolled)
         ) {
-          lines.push(
-            newLine(
-              nodePosition(i, state),
-              nodePosition(i + 1, state),
-              sqrComplex(amps[state])
-            )
-          );
+          if (!isZero(amps[state])) {
+            lines.push(
+              newLine(
+                nodePosition(i, state),
+                nodePosition(i + 1, state),
+                get_amplitudes ? sqrComplex(amps[state]) : [0.5, 0.0]
+              )
+            );
+          }
         } else {
           // Handles each possible output case
           handleOutput(0);
@@ -274,9 +276,7 @@ async function processData() {
   circuit.amplitudes = get_amplitudes;
 
   // Makes server request
-  console.log(circuit);
   const data = await makeRequest(server_url, circuit);
-  console.log(data);
 
   //console.log(circuit);
   //console.log(data);
