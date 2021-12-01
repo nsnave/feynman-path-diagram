@@ -5,11 +5,19 @@
 const server_url = "http://localhost:8000";
 const test = 3;
 
-const rev = false;
-const display_states = false;
-const display_gates = true;
-const all_nodes = false;
-const get_amplitudes = false;
+let rev = false;
+let display_states = false;
+let display_gates = true;
+let all_nodes = false;
+let get_amplitudes = false;
+
+let setGlobals = () => {
+  rev = !document.getElementById("rev-states").checked;
+  display_states = document.getElementById("disp-states").checked;
+  display_gates = document.getElementById("disp-gates").checked;
+  all_nodes = document.getElementById("disp-all-nodes").checked;
+  get_amplitudes = document.getElementById("get-amps").checked;
+};
 
 let isZero = (entry) => entry[0] == 0 && entry[1] == 0;
 let isOne = (entry) => entry[0] == 1 && entry[1] == 0;
@@ -50,7 +58,6 @@ function handleNodes(amplitudes, states_per_layer, nodePosition) {
     let amps = amplitudes[i];
     states_per_layer[i].forEach((state) => {
       if (all_nodes || i == 0 || i == layers - 1 || amps[state][0] < 0) {
-        console.log(amps[state]);
         if (!isZero(amps[state])) {
           let node_weight = get_amplitudes
             ? amps[state]
@@ -258,11 +265,16 @@ function handleGates(qubits, gates_arr, gateX) {
 }
 
 async function processData() {
-  const circuit = getCircuit(test);
+  stage.destroyChildren();
+  setGlobals();
+  const circuit = getTestCircuit(test);
   circuit.qubits = getQubitNum(circuit.cols);
+  circuit.amplitudes = get_amplitudes;
 
   // Makes server request
+  console.log(circuit);
   const data = await makeRequest(server_url, circuit);
+  console.log(data);
 
   //console.log(circuit);
   //console.log(data);
@@ -357,5 +369,3 @@ async function processData() {
   handleLines(circuit.cols, data, states_per_layer, nodePosition);
   handleNodes(data.amplitudes, states_per_layer, nodePosition);
 }
-
-processData();

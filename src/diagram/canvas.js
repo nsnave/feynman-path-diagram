@@ -215,6 +215,6 @@ function downloadURI(uri, name) {
 }
 
 function downloadCanvas() {
-  let dataURL = stage.toDataURL({ pixelRatio: 35 });
+  let dataURL = stage.toDataURL({ pixelRatio: 6 });
   downloadURI(dataURL, "diagram.png");
 }

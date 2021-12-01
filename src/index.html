@@ -12,9 +12,30 @@
   </head>
   <body>
     <div id="canvas"></div>
-    <a id="download" onclick="downloadCanvas()">&#10515;</a>
 
-    <div id="options"></div>
+    <div id="options">
+      <input type="checkbox" id="get-amps" />
+      <label>Get Amplitudes</label><br />
+
+      <input type="checkbox" id="rev-states" />
+      <label>Reverse States</label><br />
+
+      <input type="checkbox" id="disp-states" checked />
+      <label>Display States</label><br />
+
+      <input type="checkbox" id="disp-gates" checked />
+      <label>Display Gates</label><br />
+
+      <input type="checkbox" id="disp-all-nodes" />
+      <label>All Nodes</label><br />
+
+      <br />
+
+      <button id="circuit-btn">Change Circuit</button><br /><br />
+      <button id="gen-btn" onclick="processData()">Generate</button>
+
+      <a id="download" onclick="downloadCanvas()">&#10515;</a>
+    </div>
 
     <!-- Scripts -->
     <script type="text/javascript" src="diagram/gates.js"></script>

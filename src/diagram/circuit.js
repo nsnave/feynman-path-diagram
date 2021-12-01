@@ -1,4 +1,4 @@
-function getCircuit(i) {
+function getTestCircuit(i) {
   // TODO
   switch (i) {
     case 1:
