@@ -6,6 +6,29 @@ function closeCircuitPane() {
   document.getElementById("circuit").style.width = "0%";
 }
 
+function getCircuitFromFile() {
+  const circuit_file = document.getElementById("circuit-file-btn").files[0];
+  console.log(circuit_file);
+  if (circuit_file) {
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onload = function (evt) {
+        let contents = JSON.parse(evt.target.result);
+        resolve(contents);
+      };
+
+      reader.onerror = function (evt) {
+        reject(null);
+      };
+
+      reader.readAsText(circuit_file, "UTF-8");
+    });
+  }
+
+  return null;
+}
+
 function getTestCircuit(i) {
   // TODO
   switch (i) {

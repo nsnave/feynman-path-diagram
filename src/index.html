@@ -31,9 +31,16 @@
 
       <br />
 
+      <!--
       <button id="circuit-btn" onclick="openCircuitPane()">
         Change Circuit</button
-      ><br /><br />
+      >
+      -->
+
+      <label>Circuit:</label><br />
+      <input type="file" id="circuit-file-btn" name="circuit.json" />
+
+      <br /><br />
       <button id="gen-btn" onclick="processData()">Generate</button>
 
       <a id="download" onclick="downloadCanvas()">&#10515;</a>

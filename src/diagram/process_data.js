@@ -267,7 +267,9 @@ function handleGates(qubits, gates_arr, gateX) {
 async function processData() {
   stage.destroyChildren();
   setGlobals();
-  const circuit = getTestCircuit(test);
+  const circuit = await getCircuitFromFile();
+  // TODO: handle error if circuit not available (null)
+
   circuit.qubits = getQubitNum(circuit.cols);
   circuit.amplitudes = get_amplitudes;
 
