@@ -135,22 +135,44 @@ stage.on("touchend", function () {
  *                                                                              *
  ********************************************************************************/
 
+const color_re_p = "#007fff";
+const color_re_n = "#ff8000";
+const color_im_p = "#00ff80";
+const color_im_n = "#ff007f";
+
 // Creates a node at coordinate (x, y)
-function newNode(coord, amp) {
-  let sqrComplex = ([x, y]) => [x * x - y * y, 2 * x * y];
+function newNode(coord, amp, base) {
+  let denom = Math.abs(amp[0]) + Math.abs(amp[1]);
+  let re_ratio = amp[0] / denom;
+  let im_ratio = amp[1] / denom;
+  let weight = [base * re_ratio, base * im_ratio];
+  let circles = [];
 
-  let amp_sqr = sqrComplex(amp);
+  if (weight[1] != 0) {
+    circles.push(
+      new Konva.Circle({
+        x: coord.x,
+        y: coord.y,
+        radius: (Math.abs(weight[0]) + Math.abs(weight[1])) * 8,
+        stroke: amp[0] < 0 ? color_im_n : color_im_p,
+        fill: amp[0] < 0 ? color_im_n : color_im_p,
+        strokeWidth: (Math.abs(weight[0]) + Math.abs(weight[1])) * 2,
+      })
+    );
+  }
 
-  let circle = new Konva.Circle({
-    x: coord.x,
-    y: coord.y,
-    radius: Math.abs(amp_sqr[0] * 8),
-    stroke: amp[0] < 0 ? "red" : "black",
-    fill: amp[0] < 0 ? "red" : "black",
-    strokeWidth: Math.abs(amp_sqr[0] * 2),
-  });
+  circles.push(
+    new Konva.Circle({
+      x: coord.x,
+      y: coord.y,
+      radius: Math.abs(weight[0] * 8),
+      stroke: amp[0] < 0 ? color_re_n : color_re_p,
+      fill: amp[0] < 0 ? color_re_n : color_re_p,
+      strokeWidth: Math.abs(weight[0] * 2),
+    })
+  );
 
-  return circle;
+  return circles;
 }
 
 // Creates an curved line between (x1, y1) and (x2, y2)
@@ -160,26 +182,52 @@ function newLine(coord1, coord2, weight) {
   let anchor1 = { x: coord1.x + mid_x, y: coord1.y };
   let anchor2 = { x: coord2.x - mid_x, y: coord2.y };
 
-  //console.log(weight);
-  var bezier_line = new Konva.Shape({
-    stroke: weight[0] < 0 ? "orange" : "blue",
-    strokeWidth: 8 * Math.abs(weight[0]),
-    sceneFunc: (ctx, shape) => {
-      ctx.beginPath();
-      ctx.moveTo(coord1.x, coord1.y);
-      ctx.bezierCurveTo(
-        anchor1.x,
-        anchor1.y,
-        anchor2.x,
-        anchor2.y,
-        coord2.x,
-        coord2.y
-      );
-      ctx.fillStrokeShape(shape);
-    },
-  });
+  let lines = [];
 
-  return bezier_line;
+  if (weight[1] != 0) {
+    lines.push(
+      new Konva.Shape({
+        stroke: weight[1] < 0 ? color_im_n : color_im_p,
+        strokeWidth: 8 * (Math.abs(weight[0]) + Math.abs(weight[1])),
+        sceneFunc: (ctx, shape) => {
+          ctx.beginPath();
+          ctx.moveTo(coord1.x, coord1.y);
+          ctx.bezierCurveTo(
+            anchor1.x,
+            anchor1.y,
+            anchor2.x,
+            anchor2.y,
+            coord2.x,
+            coord2.y
+          );
+          ctx.fillStrokeShape(shape);
+        },
+      })
+    );
+  }
+
+  //console.log(weight);
+  lines.push(
+    new Konva.Shape({
+      stroke: weight[0] < 0 ? color_re_n : color_re_p,
+      strokeWidth: 8 * Math.abs(weight[0]),
+      sceneFunc: (ctx, shape) => {
+        ctx.beginPath();
+        ctx.moveTo(coord1.x, coord1.y);
+        ctx.bezierCurveTo(
+          anchor1.x,
+          anchor1.y,
+          anchor2.x,
+          anchor2.y,
+          coord2.x,
+          coord2.y
+        );
+        ctx.fillStrokeShape(shape);
+      },
+    })
+  );
+
+  return lines;
 }
 
 function newLabel(coord, text, font_size = 16) {
@@ -217,6 +265,6 @@ function downloadURI(uri, name) {
 }
 
 function downloadCanvas() {
-  let dataURL = stage.toDataURL({ pixelRatio: 6 });
+  let dataURL = stage.toDataURL({ pixelRatio: 7 });
   downloadURI(dataURL, "diagram.png");
 }

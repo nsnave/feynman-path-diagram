@@ -51,6 +51,7 @@ function getQubitNum(circuit) {
 }
 
 function handleNodes(amplitudes, states_per_layer, nodePosition) {
+  let conjSqr = ([x, y]) => x * x + y * y;
   // Creates a list of coordinates where each node should go
   let layers = amplitudes.length;
   let nodes = [];
@@ -64,13 +65,11 @@ function handleNodes(amplitudes, states_per_layer, nodePosition) {
         amps[state][0] < 0 ||
         amps[state][1] < 0
       ) {
-        console.log(amps[state]);
+        //console.log(amps[state]);
         if (!isZero(amps[state])) {
-          console.log("here");
-          let node_weight = get_amplitudes
-            ? amps[state]
-            : [amps[state][0] < 0 ? -0.75 : 0.75, 0.0];
-          nodes.push(newNode(nodePosition(i, state), node_weight));
+          //console.log("here");
+          let base = get_amplitudes ? Math.abs(conjSqr(amps[state])) : 0.75;
+          nodes.push(...newNode(nodePosition(i, state), amps[state], base));
         }
       }
     });
@@ -88,7 +87,11 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
   let flipBit = (x, qubit) => x ^ (1 << (qubits - qubit - 1));
 
   let scalMulComplex = (a, [x, y]) => [a * x, a * y];
-  let sqrComplex = ([x, y]) => [x * x - y * y, 2 * x * y];
+  let conjSqr = ([x, y]) => x * x + y * y;
+  let mulComplex = ([x1, y1], [x2, y2]) => [
+    x1 * x2 - y1 * y2,
+    x1 * y2 + y1 * x2,
+  ];
 
   let lines = [];
   // For each layer...
@@ -97,6 +100,7 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
     let states = states_per_layer[i];
     let gates = circuit[i];
     let amps = data.amplitudes[i];
+    let next_amps = data.amplitudes[i + 1];
 
     // Checks if this layer is controlled and if so, by which qubits
     let controlled = 0;
@@ -136,16 +140,37 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
           if (!isZero(weight) && !isZero(amps[state])) {
             let next = output == input ? state : flipBit(state, index);
             //console.log(next);
+
+            let calcWeight = (base) => {
+              let denom = Math.abs(weight[0]) + Math.abs(weight[1]);
+              let re_ratio = weight[0] / denom;
+              let im_ratio = weight[1] / denom;
+              return [base * re_ratio, base * im_ratio];
+            };
+
+            let calcAmpWeight = () => {
+              /*
+              console.log("----------------------");
+              console.log(i);
+              console.log(state);
+              console.log(next);
+              console.log(amps);
+              console.log(next_amps);
+              */
+              return calcWeight(
+                Math.abs(conjSqr(mulComplex(weight, amps[state])))
+              );
+            };
+
+            let calcNoAmpWeight = () => {
+              return calcWeight(0.5);
+            };
+
             lines.push(
-              newLine(
+              ...newLine(
                 nodePosition(i, state),
                 nodePosition(i + 1, next),
-                get_amplitudes
-                  ? scalMulComplex(
-                      (weight[0] < 0 ? -1 : 1) * (weight[0] * weight[0]),
-                      sqrComplex(amps[state])
-                    )
-                  : [weight[0] < 0 ? -0.5 : 0.5, 0.0]
+                get_amplitudes ? calcAmpWeight() : calcNoAmpWeight()
               )
             );
           }
@@ -158,10 +183,12 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
         ) {
           if (!isZero(amps[state])) {
             lines.push(
-              newLine(
+              ...newLine(
                 nodePosition(i, state),
                 nodePosition(i + 1, state),
-                get_amplitudes ? sqrComplex(amps[state]) : [0.5, 0.0]
+                get_amplitudes
+                  ? [Math.abs(conjSqr(amps[state])), 0.0]
+                  : [0.5, 0.0]
               )
             );
           }
@@ -309,8 +336,8 @@ async function processData() {
 
   data.amplitudes = [init_state].concat(data.amplitudes);
 
-  console.log(circuit);
-  console.log(data);
+  //console.log(circuit);
+  //console.log(data);
 
   let qubits = data.qubits;
   let layers = data.amplitudes.length;
