@@ -53,6 +53,26 @@ const H = [
     [-r2i, 0],
   ],
 ];
+const S = [
+  [
+    [1, 0],
+    [0, 0],
+  ],
+  [
+    [0, 0],
+    [0, 1],
+  ],
+];
+const T = [
+  [
+    [1, 0],
+    [0, 0],
+  ],
+  [
+    [0, 0],
+    [r2i, r2i],
+  ],
+];
 
 function getGate(gate_str) {
   switch (gate_str) {
@@ -64,6 +84,10 @@ function getGate(gate_str) {
       return Z;
     case "H":
       return H;
+    case "S":
+      return S;
+    case "T":
+      return T;
     default:
       return I;
   }

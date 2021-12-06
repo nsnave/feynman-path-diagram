@@ -5,7 +5,8 @@ import sys
 import json
 import requests
 
-url = 'https://lvx53rzzu7.execute-api.us-east-1.amazonaws.com/default/Quantum_Single_Full'
+#url = 'https://lvx53rzzu7.execute-api.us-east-1.amazonaws.com/default/Quantum_Single_Full'
+url = 'http://44.195.46.250:23333'
 
 class CORSRequestHandler (SimpleHTTPRequestHandler):
     def end_headers (self):

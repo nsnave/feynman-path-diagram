@@ -57,8 +57,16 @@ function handleNodes(amplitudes, states_per_layer, nodePosition) {
   for (let i = 0; i < layers; i++) {
     let amps = amplitudes[i];
     states_per_layer[i].forEach((state) => {
-      if (all_nodes || i == 0 || i == layers - 1 || amps[state][0] < 0) {
+      if (
+        all_nodes ||
+        i == 0 ||
+        i == layers - 1 ||
+        amps[state][0] < 0 ||
+        amps[state][1] < 0
+      ) {
+        console.log(amps[state]);
         if (!isZero(amps[state])) {
+          console.log("here");
           let node_weight = get_amplitudes
             ? amps[state]
             : [amps[state][0] < 0 ? -0.75 : 0.75, 0.0];
@@ -97,9 +105,9 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
       controlled <<= 1;
       anticontrolled <<= 1;
 
-      if (gate_str === "•") {
+      if (gate_str === "•" || gate_str === ".") {
         controlled |= 1;
-      } else if (gate_str === "◦") {
+      } else if (gate_str === "◦" || gate_str === "*") {
         controlled |= 1;
       }
     });
@@ -216,11 +224,11 @@ function handleGates(qubits, gates_arr, gateX) {
     let anticontrolled = [];
     let unitaries = [];
     gates.forEach((gate_str, qubit) => {
-      if (gate_str === "•") {
+      if (gate_str === "•" || gate_str === ".") {
         controlled.push(qubit);
-      } else if (gate_str === "◦") {
+      } else if (gate_str === "◦" || gate_str === "*") {
         anticontrolled.push(qubit);
-      } else if (gate_str != 1) {
+      } else if (gate_str != 1 && gate_str !== "I") {
         unitaries.push({ qubit: qubit, gate: gate_str });
       }
     });
@@ -266,40 +274,46 @@ function handleGates(qubits, gates_arr, gateX) {
   addElements(labels);
 }
 
+function processCircuit(cir) {
+  for (let i = 0; i < cir.cols.length; i++) {
+    let gates = cir.cols[i];
+    for (let j = 0; j < gates.length; j++) {
+      let gate_str = gates[j];
+      if (gate_str === "•") {
+        cir.cols[i][j] = ".";
+      } else if (gate_str === "◦") {
+        cir.cols[i][j] = "*";
+      } else if (gate_str == 1) {
+        cir.cols[i][j] = "I";
+      }
+    }
+  }
+}
+
 async function processData() {
   stage.destroyChildren();
   setGlobals();
   const circuit = await getCircuitFromFile();
   // TODO: handle error if circuit not available (null)
+  processCircuit(circuit);
 
   circuit.qubits = getQubitNum(circuit.cols);
-  circuit.amplitudes = get_amplitudes;
+  circuit.with_amp = get_amplitudes;
 
   // Makes server request
   const data = await makeRequest(server_url, circuit);
 
-  //console.log(circuit);
-  //console.log(data);
+  // Quick hacks to fix data format
+  let init_state = {};
+  init_state["0".repeat(data.qubits)] = [1, 0];
+
+  data.amplitudes = [init_state].concat(data.amplitudes);
+
+  console.log(circuit);
+  console.log(data);
 
   let qubits = data.qubits;
   let layers = data.amplitudes.length;
-
-  // Calculates which states are present in each layer
-  // Also changes the keys in data.amplitudes from strings to ints
-  let states_per_layer = [];
-  let amplitudes = [];
-  data.amplitudes.forEach((layer) => {
-    let states = [];
-    let amps = {};
-    Object.keys(layer).forEach((key) => {
-      let int_key = parseInt(key, 2);
-      states.push(int_key);
-      amps[int_key] = layer[key];
-    });
-    states_per_layer.push(states);
-    amplitudes.push(amps);
-  });
-  data.amplitudes = amplitudes;
 
   // Reverses the bits in a number
   let reverse = (q) => {
@@ -311,6 +325,23 @@ async function processData() {
     }
     return k;
   };
+
+  // Calculates which states are present in each layer
+  // Also changes the keys in data.amplitudes from strings to ints
+  let states_per_layer = [];
+  let amplitudes = [];
+  data.amplitudes.forEach((layer) => {
+    let states = [];
+    let amps = {};
+    Object.keys(layer).forEach((key) => {
+      let int_key = reverse(parseInt(key, 2));
+      states.push(int_key);
+      amps[int_key] = layer[key];
+    });
+    states_per_layer.push(states);
+    amplitudes.push(amps);
+  });
+  data.amplitudes = amplitudes;
 
   // Calculates offset of diagram sides based on the future label size
   let side_offset = 24;

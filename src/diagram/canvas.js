@@ -139,13 +139,15 @@ stage.on("touchend", function () {
 function newNode(coord, amp) {
   let sqrComplex = ([x, y]) => [x * x - y * y, 2 * x * y];
 
+  let amp_sqr = sqrComplex(amp);
+
   let circle = new Konva.Circle({
     x: coord.x,
     y: coord.y,
-    radius: Math.abs(sqrComplex(amp)[0] * 8),
+    radius: Math.abs(amp_sqr[0] * 8),
     stroke: amp[0] < 0 ? "red" : "black",
     fill: amp[0] < 0 ? "red" : "black",
-    strokeWidth: Math.abs(sqrComplex(amp)[0] * 2),
+    strokeWidth: Math.abs(amp_sqr[0] * 2),
   });
 
   return circle;
