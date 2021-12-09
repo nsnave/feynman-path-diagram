@@ -204,7 +204,7 @@ function handleLines(circuit, data, states_per_layer, nodePosition) {
   addElements(lines);
 }
 
-function handleLabels(qubits, side_offset, labelY) {
+function handleLabels(qubits, side_offset, reverse, labelY) {
   let to_string = (q) => {
     let k = "";
     for (let i = 0; i < qubits; i++) {
@@ -217,7 +217,7 @@ function handleLabels(qubits, side_offset, labelY) {
   let labels = [];
   let states = 1 << qubits;
   for (let i = 0; i < states; i++) {
-    let text = "|" + to_string(i) + String.fromCharCode(9002);
+    let text = "|" + to_string(reverse(i)) + String.fromCharCode(9002);
 
     let x1 = 12;
     let x2 = window.innerWidth - side_offset + 12;
@@ -410,7 +410,7 @@ async function processData() {
       return y;
     };
 
-    handleLabels(qubits, side_offset, labelY);
+    handleLabels(qubits, side_offset, reverse, labelY);
   }
 
   if (display_gates) {
