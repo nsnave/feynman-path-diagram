@@ -6,7 +6,7 @@
 
 #download {
   position: absolute;
-  bottom: 0;
+  top: 0;
   right: 0;
   padding-right: 8px;
   cursor: pointer;
@@ -35,9 +35,18 @@
   transition: 0.5s;
 }
 
-#close-btn {
+#save-btn {
   position: absolute;
-  top: 20px;
+  bottom: 20px;
   left: 45px;
-  font-size: 60px;
+  font-size: 20px;
+}
+
+#circuit-text {
+  position: absolute;
+  top: 50px;
+  left: 45px;
+  right: 45px;
+  bottom: 64px;
+  font-size: 16px;
 }

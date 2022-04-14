@@ -6,6 +6,10 @@ function closeCircuitPane() {
   document.getElementById("circuit").style.width = "0%";
 }
 
+function getCircuitFromPane() {
+  return JSON.parse(document.getElementById("circuit-text").value);
+}
+
 function getCircuitFromFile() {
   const circuit_file = document.getElementById("circuit-file-btn").files[0];
   if (circuit_file) {

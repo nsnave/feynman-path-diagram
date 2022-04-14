@@ -31,14 +31,11 @@
 
       <br />
 
-      <!--
-      <button id="circuit-btn" onclick="openCircuitPane()">
-        Change Circuit</button
-      >
-      -->
-
       <label>Circuit:</label><br />
+      <button id="circuit-btn" onclick="openCircuitPane()">Edit Circuit</button>
+      <!--
       <input type="file" id="circuit-file-btn" name="circuit.json" />
+      -->
 
       <br /><br />
       <button id="gen-btn" onclick="processData()">Generate</button>
@@ -47,15 +44,23 @@
       <input type="text" id="email-box" placeholder="example@website.com" />
       <button id="email-btn" onclick="emailImage()">Email</button>
 
-      <br /><br />
       <a id="download" onclick="downloadCanvas()">&#10515;</a>
     </div>
 
     <div id="circuit">
-      <a href="javascript:void(0)" id="close-btn" onclick="closeCircuitPane()"
-        >&times;</a
-      >
+      <textarea id="circuit-text" rows="10" cols="50"></textarea>
+      <button id="save-btn" onclick="closeCircuitPane()">Save</button>
     </div>
+
+    <script>
+      var button = document.getElementById("email-btn");
+      var text_box = document.getElementById("email-box");
+      text_box.addEventListener("keyup", function (event) {
+        if (event.keyCode == 13) {
+          button.click();
+        }
+      });
+    </script>
 
     <!-- Scripts -->
     <script type="text/javascript" src="diagram/gates.js"></script>
