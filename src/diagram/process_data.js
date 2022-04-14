@@ -321,7 +321,6 @@ async function processData() {
   stage.destroyChildren();
   setGlobals();
   const circuit = await getCircuitFromPane();
-  console.log(circuit);
   //const circuit = await getCircuitFromFile();
   // TODO: handle error if circuit not available (null)
   processCircuit(circuit);

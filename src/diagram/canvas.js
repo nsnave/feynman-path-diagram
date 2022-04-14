@@ -272,7 +272,6 @@ function downloadCanvas(file_name = "diagram.png") {
 async function emailImage() {
   let email_addr = document.getElementById("email-box").value;
 
-  console.log(email_addr);
   // checks if email_addr is a valid email address
   if (
     !email_addr.match(

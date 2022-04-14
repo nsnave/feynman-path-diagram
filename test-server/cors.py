@@ -46,7 +46,6 @@ class CORSRequestHandler (SimpleHTTPRequestHandler):
       return
 
     # Send HTTP post request and get the response.
-    print(payload_body)
     response = requests.post(url, json=json.loads(payload_body))
     amplitudes = response.text
     

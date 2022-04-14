@@ -53,13 +53,18 @@
     </div>
 
     <script>
-      var button = document.getElementById("email-btn");
-      var text_box = document.getElementById("email-box");
-      text_box.addEventListener("keyup", function (event) {
-        if (event.keyCode == 13) {
-          button.click();
-        }
-      });
+      function addEnter(button_id, text_box_id) {
+        var button = document.getElementById(button_id);
+        var text_box = document.getElementById(text_box_id);
+        text_box.addEventListener("keyup", function (event) {
+          if (event.keyCode == 13) {
+            button.click();
+          }
+        });
+      }
+
+      addEnter("email-btn", "email-box");
+      addEnter("save-btn", "circuit-text");
     </script>
 
     <!-- Scripts -->
