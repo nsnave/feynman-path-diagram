@@ -30,13 +30,13 @@ let isIden = (gate) => {
   );
 };
 
-async function makeRequest(url, circuit) {
+async function makeRequest(url, circuit, email = false) {
   let response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(circuit),
+    body: (email ? "EMAIL:" : "") + JSON.stringify(circuit),
   });
   let data = await response.json();
   return data;

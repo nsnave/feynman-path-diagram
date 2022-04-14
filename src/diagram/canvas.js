@@ -264,7 +264,42 @@ function downloadURI(uri, name) {
   document.body.removeChild(link);
 }
 
-function downloadCanvas() {
+function downloadCanvas(file_name = "diagram.png") {
   let dataURL = stage.toDataURL({ pixelRatio: 7 });
-  downloadURI(dataURL, "diagram.png");
+  downloadURI(dataURL, file_name);
+}
+
+async function emailImage() {
+  let email_addr = document.getElementById("email-box").value;
+
+  console.log(email_addr);
+  // checks if email_addr is a valid email address
+  if (
+    !email_addr.match(
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    )
+  ) {
+    alert("Please enter a valid email address");
+    return;
+  }
+
+  // generate random string 6 character string and store in a variable named str
+  var str = "feynmann-";
+  var possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (var i = 0; i < 6; i++) {
+    str += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  str += ".png";
+
+  downloadCanvas(str);
+
+  // Makes server request
+  const _ = await makeRequest(
+    server_url,
+    { email: email_addr, file: str },
+    true
+  );
+
+  alert("Sent!");
 }
